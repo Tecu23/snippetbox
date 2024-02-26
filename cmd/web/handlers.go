@@ -26,7 +26,6 @@ func home(w http.ResponseWriter, r *http.Request) {
   // templates in a template set. Notice that we use ... to pass the contants
   // of the file slice as variadic arguments.
   ts, err := template.ParseFiles(files...)
-  fmt.Print(err)
   if err != nil {
     log.Print(err.Error())
     http.Error(w, "Internal Server Error", http.StatusInternalServerError)
@@ -36,7 +35,6 @@ func home(w http.ResponseWriter, r *http.Request) {
   // Use the ExecuteTemplate() method to write the content to the "base"
   // template as the response body.
   err = ts.ExecuteTemplate(w, "base", nil)
-  print(err)
   if err != nil {
     log.Print(err.Error())
     http.Error(w, "Internal Server Error", http.StatusInternalServerError)
