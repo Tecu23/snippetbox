@@ -3,24 +3,24 @@ package main
 import (
 	"database/sql"
 	"flag"
+	"html/template"
 	"log/slog"
 	"net/http"
 	"os"
 
-  "github.com/Tecu23/snipperbox/internal/models"
+	"github.com/Tecu23/snipperbox/internal/models"
 
-  _ "github.com/go-sql-driver/mysql"
+	_ "github.com/go-sql-driver/mysql"
 )
 
 type application struct {
-  logger *slog.Logger
-  snippets *models.SnippetModel
+  logger          *slog.Logger
+  snippets        *models.SnippetModel
+  templateCache   map[string]*template.Template
 }
 
 func main() {
   addr :=  flag.String("addr", ":4000", "HTTP network address")
-
-  // Define a new command-line flag for the MySQL DSN string. 
   dsn := flag.String("dsn", "web:pass@/snippetbox?parseTime=true", "MySQL data source name")
   flag.Parse()
 
@@ -33,14 +33,19 @@ func main() {
     os.Exit(1)
   }
 
-  // We also defer a call to db.Close(), so that the connection pool is closed
-  // before the main() function exists
   defer db.Close()
+
+  templateCache, err := newTemplateCache()
+  if err != nil {
+    logger.Error(err.Error())
+    os.Exit(1)
+  }
 
   // Initialize a new instance of out application struct
   app := &application{
     logger: logger,
     snippets: &models.SnippetModel{DB: db},
+    templateCache: templateCache,
   }
 
   logger.Info("Starting server", "addr", *addr)
